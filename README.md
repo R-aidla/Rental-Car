@@ -25,7 +25,7 @@ To solve the task, proceed as follows:
 - If renting for more than 10 days, price is decresed by 10% (except during the high season).
 - The minimum rental price per day is equivalent to the age of the driver.
 
-## Ülesanne 1: Refaktoreerimine + uued nõuded
+## Refactored features:
 * Tänase tunni ülesanne:
    * Tutvu olemasoleva koodiga
    * Refaktoreeri kood

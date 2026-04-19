@@ -1,75 +1,90 @@
+const HOURS = 24;
+const MINUTES = 60;
+const SECONDS = 60;
+const MILLISECONDS = 1000;
+const VALID_CAR_TYPES = new Set(["Compact", "Electric", "Cabrio", "Racer"]);
+const SEASONS = {
+  HIGH: "High",
+  LOW: "Low"
+};
 
-function price(pickup, dropoff, pickupDate, dropoffDate, type, age) {
-  const clazz = getClazz(type);
-  const days = get_days(pickupDate, dropoffDate);
+const RULES = {
+  YOUNG_RACER_SURCHARGE: 1.5,
+  HIGH_SEASON_SURCHARGE: 1.15,
+  LONG_RENTAL_DISCOUNT: 0.9,
+  LONG_RENTAL_DAYS: 10,
+  YOUNG_DRIVER_AGE: 25,
+};
+
+function price(pickupDate, dropoffDate, carType, renterAge) {
+  const validCarType = getValidCarType(carType);
+  const rentalTimeInDays = getDays(pickupDate, dropoffDate);
   const season = getSeason(pickupDate, dropoffDate);
-
-  if (age < 18) {
-      return "Driver too young - cannot quote the price";
+  
+  if (renterAge < 18) {
+    return "Driver too young - cannot quote the price";
   }
 
-  if (age <= 21 && clazz !== "Compact") {
-      return "Drivers 21 y/o or less can only rent Compact vehicles";
+  if (renterAge <= 21 && carType !== "Compact") {
+    return "Drivers 21 y/o or less can only rent Compact vehicles";
   }
 
-  let rentalprice = age * days;
-
-  if (clazz === "Racer" && age <= 25 && season === "High") {
-      rentalprice *= 1.5;
-  }
-
-  if (season === "High" ) {
-    rentalprice *= 1.15;
-  }
-
-  if (days > 10 && season === "Low" ) {
-      rentalprice *= 0.9;
-  }
-  return '$' + rentalprice;
+  return "$" + calculateRentalPrice(renterAge, rentalTimeInDays, validCarType, season);
 }
 
-function getClazz(type) {
-  switch (type) {
-      case "Compact":
-          return "Compact";
-      case "Electric":
-          return "Electric";
-      case "Cabrio":
-          return "Cabrio";
-      case "Racer":
-          return "Racer";
-      default:
-          return "Unknown";
-  }
+function getValidCarType(type) {
+  return VALID_CAR_TYPES.has(type) ? type : "Unknown";
 }
 
-function get_days(pickupDate, dropoffDate) {
-  const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+function getDays(pickupDate, dropoffDate) {
+  const oneDay = HOURS * MINUTES * SECONDS * MILLISECONDS;
   const firstDate = new Date(pickupDate);
   const secondDate = new Date(dropoffDate);
 
-  return Math.round(Math.abs((firstDate - secondDate) / oneDay)) + 1;
+  if (dropoffDate < pickupDate) {
+    throw new Error("Dropoff date must be after pickup date");
+  }
+
+  return Math.ceil(Math.abs((firstDate - secondDate) / oneDay)) + 1;
 }
 
 function getSeason(pickupDate, dropoffDate) {
   const pickup = new Date(pickupDate);
   const dropoff = new Date(dropoffDate);
 
-  const start = 4; 
-  const end = 10;
+  if (isNaN(pickup) || isNaN(dropoff)) {
+    throw new Error("Invalid date");
+  }
+
+  const HIGH_SEASON_START = 4; // May
+  const HIGH_SEASON_END = 10; // November
 
   const pickupMonth = pickup.getMonth();
   const dropoffMonth = dropoff.getMonth();
 
-  if (
-      (pickupMonth >= start && pickupMonth <= end) ||
-      (dropoffMonth >= start && dropoffMonth <= end) ||
-      (pickupMonth < start && dropoffMonth > end)
-  ) {
-      return "High";
-  } else {
-      return "Low";
-  }
+  const overlapsHighSeason =
+    pickupMonth <= HIGH_SEASON_END && dropoffMonth >= HIGH_SEASON_START;
+
+  return overlapsHighSeason ? SEASONS.HIGH : SEASONS.LOW;
+}
+
+function calculateRentalPrice(renterAge, days, carType, season) {
+    const basePrice = renterAge * days;
+    let multiplier = 1;
+
+    if (carType === "Racer" && renterAge <= RULES.YOUNG_DRIVER_AGE && season === SEASONS.HIGH) {
+        multiplier *= RULES.YOUNG_RACER_SURCHARGE;
+    }
+
+    if (season === "High") {
+        multiplier *= RULES.HIGH_SEASON_SURCHARGE;
+    }
+
+    if (days > RULES.LONG_RENTAL_DAYS && season === SEASONS.LOW) {
+        multiplier *= RULES.LONG_RENTAL_DISCOUNT;
+    }
+
+    return basePrice * multiplier;
 }
 
 exports.price = price;
