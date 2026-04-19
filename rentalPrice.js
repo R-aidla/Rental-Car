@@ -19,6 +19,7 @@ const RULES = {
   YOUNG_DRIVER_AGE: 25,
   MINIMUM_REQUIRED_DRIVERS_LICENSE_AGE: 1,
   YOUNG_DRIVERS_LICENSE_AGE: 2,
+  HIGH_SEASON_YOUNG_DRIVERS_LICENSE_AGE: 3
 };
 
 function price(pickupDate, dropoffDate, carType, renterAge, driversLicenseAge) {
@@ -36,6 +37,10 @@ function price(pickupDate, dropoffDate, carType, renterAge, driversLicenseAge) {
 
   if (driversLicenseAge < RULES.MINIMUM_REQUIRED_DRIVERS_LICENSE_AGE) {
     return "Driver's license too young - cannot quote the price";
+  }
+
+  if (validCarType === "Unknown") {
+   return "Invalid car type";
   }
 
   return (
@@ -75,8 +80,8 @@ function getSeason(pickupDate, dropoffDate) {
     throw new Error("Invalid date");
   }
 
-  const HIGH_SEASON_START_MONTH = 4; // May
-  const HIGH_SEASON_END_MONTH = 10; // November
+  const HIGH_SEASON_START_MONTH = 3; // April
+  const HIGH_SEASON_END_MONTH = 9; // October
 
   const pickupMonth = pickup.getMonth();
   const dropoffMonth = dropoff.getMonth();
@@ -140,8 +145,7 @@ function calculateRentalPrice(
 
   basePrice *= multiplier;
 
-  if (season === SEASONS.HIGH && renterDrivingLicenseAge < 3) {
-    // TODO: Figure out if the this license age check number should be a constant variable.
+  if (season === SEASONS.HIGH && renterDrivingLicenseAge < RULES.HIGH_SEASON_YOUNG_DRIVERS_LICENSE_AGE) {
     basePrice += RULES.NEW_DRIVER_HIGH_SEASON_DAILY_FEE * rentalDays;
   }
 

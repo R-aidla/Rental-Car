@@ -11,7 +11,7 @@ test("Rejects too young license age", () => {
 });
 
 test("Restricts young drivers to Compact", () => {
-  expect(price("2026-05-01", "2026-05-05", "Racer", 20, 3))
+  expect(price("2026-05-01", "2026-05-05", "Racer", 21, 3))
     .toBe("Drivers 21 y/o or less can only rent Compact vehicles");
 });
 
@@ -58,10 +58,8 @@ test("Check invalid rental dates", () => {
   expect(() => price("2026/2/3", "march 1st", "Compact", 30, 5)).toThrow();
 });
 
-test("Request for an unknown car type and calculate price anyway", () => {
-  const result = price("2026-03-01", "2026-03-05", "Truck", 30, 5);
-
-  expect(result).toMatch(/^\€/);
+test("Reject on an unknown car type", () => {
+  expect(price("2026-03-01", "2026-03-05", "Truck", 30, 5)).toBe("Invalid car type");
 });
 
 
