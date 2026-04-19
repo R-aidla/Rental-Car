@@ -1,4 +1,12 @@
-const { price, getSeason } = require('./rentalPrice')
+const { price, getSeason, getDays } = require('./rentalPrice')
+
+test("getSeason method throw error on invalid dates", () => {
+  expect(() => getSeason("banana", "bread")).toThrow();
+});
+
+test("getDays method throw error on invalid dates", () => {
+  expect(() => getDays("foo", "bar")).toThrow();
+});
 
 test("Rejects drivers under 18", () => {
   expect(price("2026-05-01", "2026-05-05", "Compact", 17, 5))
